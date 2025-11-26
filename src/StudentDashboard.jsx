@@ -77,11 +77,9 @@ export default function StudentDashboard({ user, onLogout }) {
     const isAlreadyRegistered = registeredEvents.some(e => e.id === event.id)
     
     if (isAlreadyRegistered) {
-      // Unregister
       const updated = registeredEvents.filter(e => e.id !== event.id)
       setRegisteredEvents(updated)
     } else {
-      // Register
       const updated = [...registeredEvents, event]
       setRegisteredEvents(updated)
     }
@@ -107,39 +105,41 @@ export default function StudentDashboard({ user, onLogout }) {
 
         .dashboard-container {
           min-height: 100vh;
-          background: url('/src/assets/College.png') center/cover no-repeat fixed;
+          background-image: url('/src/assets/College.png');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          background-attachment: fixed;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
           position: relative;
         }
 
         .dashboard-container::before {
           content: '';
-          position: fixed;
+          position: absolute;
           top: 0;
           left: 0;
           right: 0;
           bottom: 0;
-          background: rgba(0, 0, 0, 0.3);
-          z-index: 1;
-          pointer-events: none;
+          background: rgba(0, 0, 0, 0.4);
+          z-index: 0;
         }
 
         .dashboard-container > * {
           position: relative;
-          z-index: 2;
+          z-index: 1;
         }
 
         .dashboard-header {
-          background: #1f2937;
-          padding: 24px 48px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(31, 41, 55, 0.75);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          padding: 20px 48px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.15);
           display: flex;
           justify-content: space-between;
           align-items: center;
-          position: sticky;
-          top: 0;
-          z-index: 100;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         }
 
         .dashboard-header h1 {
@@ -189,7 +189,7 @@ export default function StudentDashboard({ user, onLogout }) {
           background: transparent;
           color: #fca5a5;
           border: 2px solid #fca5a5;
-          padding: 10px 20px;
+          padding: 10px 24px;
           border-radius: 8px;
           cursor: pointer;
           font-weight: 600;
@@ -207,10 +207,11 @@ export default function StudentDashboard({ user, onLogout }) {
         .dashboard-content {
           max-width: 1400px;
           margin: 0 auto;
-          padding: 32px 48px;
+          padding: 40px 48px;
           display: grid;
-          grid-template-columns: 320px 1fr;
+          grid-template-columns: 380px 1fr;
           gap: 32px;
+          align-items: start;
         }
 
         @media (max-width: 1024px) {
@@ -225,57 +226,53 @@ export default function StudentDashboard({ user, onLogout }) {
         }
 
         .sidebar {
-          background: rgba(255, 255, 255, 0.15);
-          padding: 24px;
-          border-radius: 16px;
-          border: 1px solid rgba(255, 255, 255, 0.3);
+          background: rgba(255, 255, 255, 0.08);
+          padding: 28px;
+          border-radius: 20px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
-          height: fit-content;
-          position: sticky;
-          top: 120px;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
         }
 
         .sidebar h2 {
           color: white;
-          margin: 0 0 20px 0;
-          font-size: 18px;
+          margin: 0 0 24px 0;
+          font-size: 20px;
           font-weight: 600;
-          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .registered-event-item {
-          background: rgba(255, 255, 255, 0.1);
-          padding: 16px;
+          background: rgba(255, 255, 255, 0.12);
+          padding: 18px;
           margin-bottom: 12px;
           border-radius: 12px;
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.25);
           transition: all 0.3s ease;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
         }
 
         .registered-event-item:hover {
           background: rgba(255, 255, 255, 0.2);
-          border-color: rgba(255, 255, 255, 0.5);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
           transform: translateX(4px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .registered-event-item h4 {
           margin: 0 0 8px 0;
           color: white;
-          font-size: 14px;
+          font-size: 15px;
           font-weight: 600;
-          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
 
         .registered-event-item p {
           margin: 0 0 4px 0;
           color: rgba(255, 255, 255, 0.9);
           font-size: 13px;
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
         }
 
         .registered-event-item p:last-child {
@@ -283,63 +280,66 @@ export default function StudentDashboard({ user, onLogout }) {
         }
 
         .main-content {
-          background: rgba(255, 255, 255, 0.15);
-          padding: 24px;
-          border-radius: 16px;
-          border: 1px solid rgba(255, 255, 255, 0.3);
+          background: rgba(255, 255, 255, 0.08);
+          padding: 32px;
+          border-radius: 20px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
         }
 
         .main-content h2 {
           color: white;
-          margin: 0 0 24px 0;
-          font-size: 18px;
+          margin: 0 0 28px 0;
+          font-size: 20px;
           font-weight: 600;
-          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .events-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          display: flex;
+          flex-direction: column;
           gap: 24px;
         }
 
         .event-card {
-          background: rgba(255, 255, 255, 0.15);
+          background: rgba(255, 255, 255, 0.1);
           border-radius: 16px;
           overflow: hidden;
           transition: all 0.3s ease;
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          display: flex;
-          flex-direction: column;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          display: grid;
+          grid-template-columns: 200px 1fr;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
         }
 
         .event-card:hover {
-          background: rgba(255, 255, 255, 0.25);
-          border-color: rgba(255, 255, 255, 0.5);
-          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-          transform: translateY(-4px);
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(255, 255, 255, 0.35);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+          transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+          .event-card {
+            grid-template-columns: 1fr;
+          }
         }
 
         .event-card-image {
           background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
           padding: 32px;
-          text-align: center;
-          font-size: 56px;
-          height: 140px;
           display: flex;
           align-items: center;
           justify-content: center;
+          font-size: 64px;
         }
 
         .event-card-content {
-          padding: 20px;
-          flex: 1;
+          padding: 24px;
           display: flex;
           flex-direction: column;
         }
@@ -347,112 +347,109 @@ export default function StudentDashboard({ user, onLogout }) {
         .event-card-content h3 {
           margin: 0 0 12px 0;
           color: white;
-          font-size: 18px;
+          font-size: 20px;
           font-weight: 600;
           line-height: 1.3;
-          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
 
         .event-category {
           display: inline-block;
           background: rgba(255, 255, 255, 0.25);
           color: white;
-          padding: 4px 12px;
-          border-radius: 6px;
-          font-size: 12px;
+          padding: 6px 14px;
+          border-radius: 8px;
+          font-size: 13px;
           font-weight: 600;
           margin-bottom: 16px;
           width: fit-content;
           border: 1px solid rgba(255, 255, 255, 0.3);
-          backdrop-filter: blur(10px);
           text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
 
         .event-meta {
-          color: rgba(255, 255, 255, 0.9);
-          font-size: 13px;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
           margin-bottom: 16px;
-          line-height: 1.8;
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
 
         .event-meta-item {
           display: flex;
           align-items: center;
           gap: 8px;
-          margin-bottom: 6px;
+          color: rgba(255, 255, 255, 0.95);
+          font-size: 14px;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
         }
 
         .event-meta-icon {
-          width: 16px;
-          text-align: center;
+          font-size: 16px;
         }
 
         .event-description {
-          color: rgba(255, 255, 255, 0.85);
+          color: rgba(255, 255, 255, 0.9);
           font-size: 14px;
           margin-bottom: 20px;
           line-height: 1.6;
           flex: 1;
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
         }
 
         .register-btn {
-          width: 100%;
-          padding: 12px;
+          width: 200px;
+          padding: 12px 24px;
           border: none;
-          border-radius: 8px;
+          border-radius: 10px;
           cursor: pointer;
           font-weight: 600;
-          transition: all 0.2s;
+          transition: all 0.3s ease;
           font-size: 14px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
 
         .register-btn.not-registered {
-          background: rgba(79, 70, 229, 0.8);
+          background: rgba(79, 70, 229, 0.9);
           color: white;
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .register-btn.not-registered:hover {
-          background: rgba(67, 56, 202, 0.9);
-          border-color: rgba(255, 255, 255, 0.3);
+          background: rgba(67, 56, 202, 1);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .register-btn.registered {
-          background: rgba(34, 197, 94, 0.8);
+          background: rgba(34, 197, 94, 0.9);
           color: white;
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          backdrop-filter: blur(10px);
         }
 
         .register-btn.registered:hover {
-          background: rgba(22, 163, 74, 0.9);
-          border-color: rgba(255, 255, 255, 0.3);
+          background: rgba(22, 163, 74, 1);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .empty-state {
           text-align: center;
           padding: 48px 20px;
-          color: rgba(255, 255, 255, 0.7);
+          color: rgba(255, 255, 255, 0.8);
         }
 
         .empty-state-icon {
-          font-size: 48px;
+          font-size: 56px;
           margin-bottom: 16px;
-          opacity: 0.6;
+          opacity: 0.7;
         }
 
         .empty-state p {
           font-size: 14px;
           margin: 0;
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
         }
       `}</style>
 
       <div className="dashboard-container">
-        {/* Header */}
         <div className="dashboard-header">
           <h1>Student Dashboard</h1>
           <div className="user-info">
@@ -469,9 +466,7 @@ export default function StudentDashboard({ user, onLogout }) {
           </div>
         </div>
 
-        {/* Main Content */}
         <div className="dashboard-content">
-          {/* Sidebar - Registered Events */}
           <div className="sidebar">
             <h2>My Registrations</h2>
             {registeredEvents.length > 0 ? (
@@ -490,9 +485,8 @@ export default function StudentDashboard({ user, onLogout }) {
             )}
           </div>
 
-          {/* Main - All Events */}
           <div className="main-content">
-            <h2>EVENTS</h2>
+            <h2>Upcoming Events</h2>
             <div className="events-grid">
               {allEvents.map(event => (
                 <div key={event.id} className="event-card">

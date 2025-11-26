@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import './App.css'
 import StudentDashboard from './StudentDashboard.jsx'
 
@@ -10,14 +10,6 @@ function App() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loggedInUser, setLoggedInUser] = useState(null)
-
-  useEffect(() => {
-    // Check if user is already logged in
-    const user = localStorage.getItem('user')
-    if (user) {
-      setLoggedInUser(JSON.parse(user))
-    }
-  }, [])
   
   // Form states
   const [formData, setFormData] = useState({
@@ -62,8 +54,6 @@ function App() {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
     setLoggedInUser(null)
     setAuthMode('login')
   }
@@ -136,29 +126,11 @@ function App() {
 
       setSuccess(data.message)
       
-      // Save token to localStorage
-      localStorage.setItem('token', data.token)
-      localStorage.setItem('user', JSON.stringify(data.user))
-      
+      // Set logged in user from response - this will trigger the dashboard to show
       setLoggedInUser(data.user)
-
-      // Close modal after 1 second
-      setTimeout(() => {
-        setShowAuthModal(false)
-        setFormData({
-          fullName: '',
-          email: '',
-          password: '',
-          organizationName: '',
-          organizationType: 'school',
-          phone: '',
-          address: '',
-          city: '',
-          state: '',
-          zipCode: '',
-          description: '',
-        })
-      }, 2000)
+      
+      // Close modal immediately
+      setShowAuthModal(false)
     } catch (err) {
       console.error('❌ Error:', err)
       setError(err.message || 'Network error. Make sure backend is running on http://localhost:5000')
@@ -314,7 +286,7 @@ function App() {
             {error && <div className="error-message">{error}</div>}
             {success && <div className="success-message">{success}</div>}
 
-            <form onSubmit={handleSubmit} className="auth-form">
+            <div onSubmit={handleSubmit} className="auth-form" role="form">
               {authMode === 'signup' && (
                 <input
                   type="text"
@@ -426,10 +398,10 @@ function App() {
                 </>
               )}
 
-              <button type="submit" className="submit-btn" disabled={loading}>
+              <button onClick={handleSubmit} className="submit-btn" disabled={loading}>
                 {loading ? 'Processing...' : (authMode === 'login' ? 'Login' : 'Sign Up')}
               </button>
-            </form>
+            </div>
 
             <p className="toggle-auth">
               {authMode === 'login' ? "Don't have an account? " : 'Already have an account? '}
