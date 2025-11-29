@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import './App.css'
 import StudentDashboard from './StudentDashboard.jsx'
+import OrganizerDashboard from './OrganizerDashboard.jsx'
+import FacultyDashboard from './FacultyDashboard.jsx'
+
+// API Configuration - use environment variable or default
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001'
 
 function App() {
   const [showAuthModal, setShowAuthModal] = useState(false)
@@ -9,6 +14,7 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [successOrgId, setSuccessOrgId] = useState(null) // Store org ID separately
   const [loggedInUser, setLoggedInUser] = useState(null)
   
   // Form states
@@ -16,6 +22,7 @@ function App() {
     fullName: '',
     email: '',
     password: '',
+    organizerId: '',
     organizationName: '',
     organizationType: 'school',
     phone: '',
@@ -32,11 +39,13 @@ function App() {
     setShowAuthModal(true)
     setError('')
     setSuccess('')
+    setSuccessOrgId(null)
     setLoading(false)
     setFormData({
       fullName: '',
       email: '',
       password: '',
+      organizerId: '',
       organizationName: '',
       organizationType: 'school',
       phone: '',
@@ -58,9 +67,24 @@ function App() {
     setAuthMode('login')
   }
 
-  // If user is logged in and is a student, show dashboard
+  // Copy Organization ID to clipboard
+  const copyOrgIdToClipboard = () => {
+    if (successOrgId) {
+      navigator.clipboard.writeText(successOrgId)
+      alert('Organization ID copied to clipboard!')
+    }
+  }
+
   if (loggedInUser && loggedInUser.role === 'student') {
     return <StudentDashboard user={loggedInUser} onLogout={handleLogout} />
+  }
+
+  if (loggedInUser && loggedInUser.role === 'organizer') {
+    return <OrganizerDashboard user={loggedInUser} onLogout={handleLogout} />
+  }
+
+  if (loggedInUser && loggedInUser.role === 'faculty') {
+    return <FacultyDashboard user={loggedInUser} onLogout={handleLogout} />
   }
 
   const handleInputChange = (e) => {
@@ -75,10 +99,12 @@ function App() {
     e.preventDefault()
     setError('')
     setSuccess('')
+    setSuccessOrgId(null)
     setLoading(true)
 
     try {
       const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/signup'
+      const url = `${API_BASE_URL}${endpoint}`
       
       // Prepare request payload
       const payload = {
@@ -87,11 +113,31 @@ function App() {
         role: userRole,
       }
 
+      // For login, always include organizerId
+      if (authMode === 'login') {
+        if (!formData.organizerId.trim()) {
+          setError('Organization ID is required for login')
+          setLoading(false)
+          return
+        }
+        payload.organizerId = formData.organizerId.trim().toUpperCase()
+      }
+
       if (authMode === 'signup') {
+        if (!formData.fullName.trim()) {
+          setError('Full Name is required')
+          setLoading(false)
+          return
+        }
         payload.fullName = formData.fullName
         
         // Add organizer-specific fields if role is organizer
         if (userRole === 'organizer') {
+          if (!formData.organizationName.trim()) {
+            setError('Organization Name is required')
+            setLoading(false)
+            return
+          }
           payload.organizationName = formData.organizationName
           payload.organizationType = formData.organizationType
           payload.phone = formData.phone
@@ -100,41 +146,84 @@ function App() {
           payload.state = formData.state
           payload.zipCode = formData.zipCode
           payload.description = formData.description
+        } else {
+          // For student and faculty signup, include organizerId
+          if (!formData.organizerId.trim()) {
+            setError(`Organization ID is required for ${userRole} registration`)
+            setLoading(false)
+            return
+          }
+          payload.organizerId = formData.organizerId.trim().toUpperCase()
         }
       }
 
-      console.log('📤 Sending request to:', `http://localhost:5000${endpoint}`)
-      console.log('📦 Payload:', payload)
+      console.log('📨 Auth Request Details:')
+      console.log('  Mode:', authMode)
+      console.log('  URL:', url)
+      console.log('  Role:', userRole)
+      console.log('  Payload:', payload)
 
-      const response = await fetch(`http://localhost:5001${endpoint}`, {
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(payload),
       })
 
-      console.log('📥 Response status:', response.status)
+      console.log('📥 Response Status:', response.status)
+
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error(`Server returned invalid content type: ${contentType}`)
+      }
 
       const data = await response.json()
-      console.log('📊 Response data:', data)
+      console.log('📊 Response Data:', data)
 
+      // Handle non-200 responses
       if (!response.ok) {
-        setError(data.message || `Error: ${response.status}`)
+        const errorMessage = data.message || data.error || `Server Error: ${response.status}`
+        console.error('❌ Request failed:', errorMessage)
+        setError(errorMessage)
+        setLoading(false)
         return
       }
 
-      setSuccess(data.message)
+      // Success: Organizer signup
+      if (authMode === 'signup' && userRole === 'organizer') {
+        const orgId = data.user.organizerId
+        setSuccessOrgId(orgId) // Store org ID for copy button
+        setSuccess(`✅ ${data.message}`)
+        
+        // Log in user after a short delay so they can see the ID
+        setTimeout(() => {
+          const userData = {
+            ...data.user,
+            role: userRole
+          }
+          console.log('✅ Login user:', userData)
+          setLoggedInUser(userData)
+          setShowAuthModal(false)
+        }, 5000)
+      } else {
+        // Success: Other auth modes
+        setSuccess(data.message || 'Success!')
+        
+        const userData = {
+          ...data.user,
+          role: userRole
+        }
+        console.log('✅ Login user:', userData)
+        setLoggedInUser(userData)
+        setShowAuthModal(false)
+      }
       
-      // Set logged in user from response - this will trigger the dashboard to show
-      setLoggedInUser(data.user)
-      
-      // Close modal immediately
-      setShowAuthModal(false)
     } catch (err) {
-      console.error('❌ Error:', err)
-      setError(err.message || 'Network error. Make sure backend is running on http://localhost:5000')
-    } finally {
+      console.error('❌ Fetch Error:', err)
+      setError(`Error: ${err.message || 'Failed to process request'}`)
       setLoading(false)
     }
   }
@@ -176,9 +265,29 @@ function App() {
           <h2>Why Eventra?</h2>
           <p>
             Eventra is a modern platform where <strong>organizers</strong> can register 
-            their events and <strong>students</strong> can browse, explore and enroll easily.  
+            their events, <strong>faculty members</strong> can create educational workshops, 
+            and <strong>students</strong> can browse, explore and enroll easily.  
             Perfect for colleges, schools, clubs, and professional event teams.
           </p>
+        </section>
+
+        {/* HOW IT WORKS */}
+        <section className="how-it-works">
+          <h2>How It Works</h2>
+          <div className="steps-grid">
+            <div className="step-card">
+              <h3>🏢 Organizations Register</h3>
+              <p>Educational institutions and event organizers sign up and receive a unique Organizer ID</p>
+            </div>
+            <div className="step-card">
+              <h3>👨‍🏫 Faculty Creates Workshops</h3>
+              <p>Faculty members can design and manage educational events for their institution</p>
+            </div>
+            <div className="step-card">
+              <h3>🎓 Students Discover & Join</h3>
+              <p>Students register using their institutional email and Organization ID</p>
+            </div>
+          </div>
         </section>
 
         {/* EVENT CATEGORIES */}
@@ -194,19 +303,19 @@ function App() {
           </div>
         </section>
 
-        {/* ORGANIZER TYPES */}
+        {/* USER TYPES */}
         <section className="organizer-section">
-          <h2>Organizers on Eventra</h2>
+          <h2>Users on Eventra</h2>
           <p>
-            Institutions and organizations trust Eventra to manage, publish, 
-            and promote their events seamlessly.
+            Institutions, organizations, faculty, and students trust Eventra to manage, 
+            publish, and promote their events seamlessly.
           </p>
 
           <div className="organizer-types">
-            <div className="org-card">Schools</div>
-            <div className="org-card">Colleges</div>
-            <div className="org-card">Universities</div>
-            <div className="org-card">Private Organizers</div>
+            <div className="org-card">🏢 Organizations</div>
+            <div className="org-card">👨‍🏫 Faculty</div>
+            <div className="org-card">🎓 Students</div>
+            <div className="org-card">🎯 Event Organizers</div>
           </div>
         </section>
 
@@ -237,12 +346,12 @@ function App() {
         {/* CALL TO ACTION */}
         <section className="cta-section">
           <h2>Want to Host an Event?</h2>
-          <p>Join Eventra as an organizer and publish your event within minutes.</p>
+          <p>Join Eventra as an organizer or faculty member and publish your event within minutes.</p>
           <button 
             className="cta-btn"
             onClick={() => handleAuthClick('signup')}
           >
-            Become an Organizer
+            Get Started
           </button>
         </section>
 
@@ -275,6 +384,12 @@ function App() {
                   Student
                 </button>
                 <button
+                  className={`toggle-btn ${userRole === 'faculty' ? 'active' : ''}`}
+                  onClick={() => handleRoleToggle('faculty')}
+                >
+                  Faculty
+                </button>
+                <button
                   className={`toggle-btn ${userRole === 'organizer' ? 'active' : ''}`}
                   onClick={() => handleRoleToggle('organizer')}
                 >
@@ -283,10 +398,115 @@ function App() {
               </div>
             </div>
 
-            {error && <div className="error-message">{error}</div>}
-            {success && <div className="success-message">{success}</div>}
+            {/* Info messages */}
+            {authMode === 'signup' && userRole === 'student' && (
+              <div className="info-message">
+                ℹ️ You need your Organization ID and institutional email to register
+              </div>
+            )}
 
-            <div onSubmit={handleSubmit} className="auth-form" role="form">
+            {authMode === 'signup' && userRole === 'faculty' && (
+              <div className="info-message">
+                ℹ️ Faculty members can create and manage educational events for your institution
+              </div>
+            )}
+
+            {authMode === 'signup' && userRole === 'organizer' && (
+              <div className="info-message">
+                ℹ️ You will receive a unique Organization ID after registration
+              </div>
+            )}
+
+            {authMode === 'login' && (
+              <div className="info-message">
+                🆔 Enter your Organization ID to login
+              </div>
+            )}
+
+            {error && (
+              <div className="error-message">
+                ❌ {error}
+              </div>
+            )}
+
+            {success && (
+              <div className="success-message">
+                {success}
+              </div>
+            )}
+
+            {/* Organization ID Display and Copy Button - Only shows for organizer signup */}
+            {authMode === 'signup' && userRole === 'organizer' && successOrgId && (
+              <div style={{
+                backgroundColor: '#e8f5e9',
+                border: '2px solid #4caf50',
+                borderRadius: '8px',
+                padding: '16px',
+                marginTop: '12px',
+                marginBottom: '12px'
+              }}>
+                <div style={{
+                  fontSize: '14px',
+                  color: '#2e7d32',
+                  marginBottom: '8px',
+                  fontWeight: 'bold'
+                }}>
+                  🆔 Your Organization ID:
+                </div>
+                <div style={{
+                  display: 'flex',
+                  gap: '8px',
+                  alignItems: 'center'
+                }}>
+                  <input
+                    type="text"
+                    value={successOrgId}
+                    readOnly
+                    style={{
+                      flex: 1,
+                      padding: '10px',
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                      border: '1px solid #4caf50',
+                      borderRadius: '4px',
+                      backgroundColor: '#fff',
+                      color: '#2e7d32',
+                      fontFamily: 'monospace',
+                      letterSpacing: '1px'
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={copyOrgIdToClipboard}
+                    style={{
+                      padding: '10px 16px',
+                      backgroundColor: '#4caf50',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '14px',
+                      whiteSpace: 'nowrap'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = '#45a049'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = '#4caf50'}
+                  >
+                    📋 Copy
+                  </button>
+                </div>
+                <div style={{
+                  fontSize: '12px',
+                  color: '#2e7d32',
+                  marginTop: '8px',
+                  fontStyle: 'italic'
+                }}>
+                  ⚠️ Important: Save this ID - faculty and students will need it to register!
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="auth-form">
               {authMode === 'signup' && (
                 <input
                   type="text"
@@ -302,7 +522,7 @@ function App() {
               <input
                 type="email"
                 name="email"
-                placeholder="Email"
+                placeholder={userRole === 'student' || userRole === 'faculty' ? 'Institutional Email' : 'Email'}
                 value={formData.email}
                 onChange={handleInputChange}
                 required
@@ -319,6 +539,20 @@ function App() {
                 className="form-input"
               />
 
+              {/* Organization ID field - shown for login and student/faculty signup */}
+              {(authMode === 'login' || (authMode === 'signup' && (userRole === 'student' || userRole === 'faculty'))) && (
+                <input
+                  type="text"
+                  name="organizerId"
+                  placeholder="Organization ID (e.g., UNI-ABC123-4567)"
+                  value={formData.organizerId}
+                  onChange={handleInputChange}
+                  required
+                  className="form-input"
+                  style={{ textTransform: 'uppercase' }}
+                />
+              )}
+
               {authMode === 'signup' && userRole === 'organizer' && (
                 <>
                   <input
@@ -327,6 +561,7 @@ function App() {
                     placeholder="Organization Name"
                     value={formData.organizationName}
                     onChange={handleInputChange}
+                    required
                     className="form-input"
                   />
 
@@ -335,6 +570,7 @@ function App() {
                     value={formData.organizationType}
                     onChange={handleInputChange}
                     className="form-input"
+                    required
                   >
                     <option value="school">School</option>
                     <option value="college">College</option>
@@ -398,10 +634,10 @@ function App() {
                 </>
               )}
 
-              <button onClick={handleSubmit} className="submit-btn" disabled={loading}>
+              <button type="submit" className="submit-btn" disabled={loading || (successOrgId !== null)}>
                 {loading ? 'Processing...' : (authMode === 'login' ? 'Login' : 'Sign Up')}
               </button>
-            </div>
+            </form>
 
             <p className="toggle-auth">
               {authMode === 'login' ? "Don't have an account? " : 'Already have an account? '}
@@ -411,6 +647,7 @@ function App() {
                   setAuthMode(authMode === 'login' ? 'signup' : 'login')
                   setError('')
                   setSuccess('')
+                  setSuccessOrgId(null)
                 }}
               >
                 {authMode === 'login' ? 'Sign Up' : 'Login'}

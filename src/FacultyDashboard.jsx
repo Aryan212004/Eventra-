@@ -1,94 +1,55 @@
 import { useState } from 'react'
+import CreateEvent from './CreateEvent.jsx'
 
-export default function StudentDashboard({ user, onLogout }) {
-  const [registeredEvents, setRegisteredEvents] = useState([])
-  const [currentMonth, setCurrentMonth] = useState(new Date())
-
-  // Mock upcoming events data
-  const allEvents = [
+export default function FacultyDashboard({ user, onLogout }) {
+  const [createdEvents, setCreatedEvents] = useState([
     {
       id: 1,
-      title: 'AI & ML Bootcamp',
-      organizer: 'Tech University',
+      title: 'Advanced Python Programming',
       date: '2024-12-15',
       time: '10:00 AM',
-      location: 'Main Campus',
+      endTime: '12:00 PM',
+      location: 'Lab 101',
       category: 'Workshop',
-      description: 'Learn AI and Machine Learning from industry experts',
-      image: '🤖'
+      description: 'Master advanced Python concepts and best practices',
+      totalParticipants: 45,
+      capacity: 50,
+      status: 'Active',
+      image: '🐍'
     },
     {
       id: 2,
-      title: 'National Robotics Championship',
-      organizer: 'Robo Club',
+      title: 'Data Science Seminar',
       date: '2024-12-20',
       time: '2:00 PM',
-      location: 'Sports Complex',
-      category: 'Competition',
-      description: 'Compete with teams from across the country',
-      image: '🤖'
+      endTime: '4:00 PM',
+      location: 'Auditorium',
+      category: 'Seminar',
+      description: 'Latest trends in Data Science and Machine Learning',
+      totalParticipants: 32,
+      capacity: 100,
+      status: 'Active',
+      image: '📊'
     },
     {
       id: 3,
-      title: 'Photography Workshop',
-      organizer: 'Creative Hub',
+      title: 'Web Development Workshop',
       date: '2024-12-10',
       time: '3:00 PM',
-      location: 'Art Building',
+      endTime: '5:00 PM',
+      location: 'Computer Lab',
       category: 'Workshop',
-      description: 'Master photography techniques with professionals',
-      image: '📷'
+      description: 'Build responsive web applications with modern frameworks',
+      totalParticipants: 28,
+      capacity: 40,
+      status: 'Completed',
+      image: '🌐'
     },
-    {
-      id: 4,
-      title: 'Web Development Hackathon',
-      organizer: 'Code Club',
-      date: '2024-12-25',
-      time: '9:00 AM',
-      location: 'Tech Lab',
-      category: 'Hackathon',
-      description: '24-hour coding challenge with amazing prizes',
-      image: '💻'
-    },
-    {
-      id: 5,
-      title: 'Startup Summit',
-      organizer: 'Entrepreneurship Cell',
-      date: '2024-12-28',
-      time: '11:00 AM',
-      location: 'Conference Hall',
-      category: 'Seminar',
-      description: 'Network with successful entrepreneurs and investors',
-      image: '🚀'
-    },
-    {
-      id: 6,
-      title: 'Annual Sports Fest',
-      organizer: 'Sports Department',
-      date: '2025-01-05',
-      time: '7:00 AM',
-      location: 'Sports Ground',
-      category: 'Sports',
-      description: 'Inter-college sports competition across multiple events',
-      image: '⚽'
-    },
-  ]
+  ])
 
-  const handleRegisterEvent = (event) => {
-    const isAlreadyRegistered = registeredEvents.some(e => e.id === event.id)
-    
-    if (isAlreadyRegistered) {
-      const updated = registeredEvents.filter(e => e.id !== event.id)
-      setRegisteredEvents(updated)
-    } else {
-      const updated = [...registeredEvents, event]
-      setRegisteredEvents(updated)
-    }
-  }
-
-  const isRegistered = (eventId) => {
-    return registeredEvents.some(e => e.id === eventId)
-  }
+  const [currentMonth, setCurrentMonth] = useState(new Date())
+  const [showCreateEvent, setShowCreateEvent] = useState(false)
+  const [editingEventId, setEditingEventId] = useState(null)
 
   // Calendar Functions
   const getDaysInMonth = (date) => {
@@ -99,8 +60,8 @@ export default function StudentDashboard({ user, onLogout }) {
     return new Date(date.getFullYear(), date.getMonth(), 1).getDay()
   }
 
-  const getRegisteredDates = () => {
-    return registeredEvents.map(event => {
+  const getEventDates = () => {
+    return createdEvents.map(event => {
       const [year, month, day] = event.date.split('-')
       return parseInt(day)
     })
@@ -114,10 +75,25 @@ export default function StudentDashboard({ user, onLogout }) {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))
   }
 
+  const handleEventCreated = (newEvent) => {
+    const eventWithId = {
+      ...newEvent,
+      id: createdEvents.length + 1
+    }
+    setCreatedEvents([...createdEvents, eventWithId])
+    setShowCreateEvent(false)
+  }
+
+  const handleDeleteEvent = (eventId) => {
+    if (confirm('Are you sure you want to delete this event?')) {
+      setCreatedEvents(createdEvents.filter(e => e.id !== eventId))
+    }
+  }
+
   const monthName = currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })
   const daysInMonth = getDaysInMonth(currentMonth)
   const firstDay = getFirstDayOfMonth(currentMonth)
-  const registeredDates = getRegisteredDates()
+  const eventDates = getEventDates()
 
   return (
     <>
@@ -206,7 +182,7 @@ export default function StudentDashboard({ user, onLogout }) {
           width: 40px;
           height: 40px;
           border-radius: 50%;
-          background: #4f46e5;
+          background: #a855f7;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -276,42 +252,48 @@ export default function StudentDashboard({ user, onLogout }) {
           text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
-        /* Organization ID Box */
-        .org-id-box {
-          background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%);
-          border: 2px solid rgba(99, 102, 241, 0.4);
+        .stats-box {
+          background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+          border: 2px solid rgba(168, 85, 247, 0.4);
           border-radius: 12px;
           padding: 16px;
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
         }
 
-        .org-id-label {
+        .stat-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 12px;
+          padding-bottom: 12px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-item:last-child {
+          margin-bottom: 0;
+          padding-bottom: 0;
+          border-bottom: none;
+        }
+
+        .stat-label {
           color: rgba(255, 255, 255, 0.8);
-          font-size: 12px;
+          font-size: 13px;
           font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          margin-bottom: 8px;
-          display: block;
           text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
 
-        .org-id-value {
-          background: rgba(255, 255, 255, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          padding: 10px 12px;
-          border-radius: 8px;
-          color: #60a5fa;
-          font-size: 14px;
+        .stat-value {
+          background: rgba(168, 85, 247, 0.3);
+          color: #d8b4fe;
+          padding: 4px 12px;
+          border-radius: 6px;
           font-weight: 700;
-          font-family: 'Courier New', monospace;
-          letter-spacing: 1px;
+          font-size: 14px;
+          border: 1px solid rgba(216, 180, 254, 0.2);
           text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-          text-align: center;
         }
 
-        /* Calendar Styling */
         .calendar-container {
           background: rgba(255, 255, 255, 0.08);
           border: 1px solid rgba(255, 255, 255, 0.2);
@@ -341,7 +323,7 @@ export default function StudentDashboard({ user, onLogout }) {
         }
 
         .calendar-btn {
-          background: rgba(99, 102, 241, 0.6);
+          background: rgba(168, 85, 247, 0.6);
           color: white;
           border: none;
           padding: 6px 12px;
@@ -353,7 +335,7 @@ export default function StudentDashboard({ user, onLogout }) {
         }
 
         .calendar-btn:hover {
-          background: rgba(99, 102, 241, 1);
+          background: rgba(168, 85, 247, 1);
           transform: translateY(-1px);
         }
 
@@ -400,59 +382,18 @@ export default function StudentDashboard({ user, onLogout }) {
         }
 
         .calendar-day.event {
-          background: linear-gradient(135deg, rgba(34, 197, 94, 0.5) 0%, rgba(16, 185, 129, 0.5) 100%);
-          color: #86efac;
-          border: 1px solid rgba(74, 222, 128, 0.4);
+          background: linear-gradient(135deg, rgba(168, 85, 247, 0.6) 0%, rgba(147, 51, 234, 0.6) 100%);
+          color: #d8b4fe;
+          border: 1px solid rgba(216, 180, 254, 0.4);
           cursor: pointer;
           transition: all 0.2s ease;
         }
 
         .calendar-day.event:hover {
-          background: linear-gradient(135deg, rgba(34, 197, 94, 0.8) 0%, rgba(16, 185, 129, 0.8) 100%);
-          border-color: rgba(74, 222, 128, 0.8);
+          background: linear-gradient(135deg, rgba(168, 85, 247, 0.9) 0%, rgba(147, 51, 234, 0.9) 100%);
+          border-color: rgba(216, 180, 254, 0.8);
           transform: scale(1.05);
-          box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
-        }
-
-        .registrations-section {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .registered-event-item {
-          background: rgba(255, 255, 255, 0.12);
-          padding: 12px;
-          border-radius: 10px;
-          border: 1px solid rgba(255, 255, 255, 0.25);
-          transition: all 0.3s ease;
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-        }
-
-        .registered-event-item:hover {
-          background: rgba(255, 255, 255, 0.2);
-          transform: translateX(4px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .registered-event-item h4 {
-          margin: 0 0 4px 0;
-          color: white;
-          font-size: 13px;
-          font-weight: 600;
-          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-        }
-
-        .registered-event-item p {
-          margin: 0 0 2px 0;
-          color: rgba(255, 255, 255, 0.85);
-          font-size: 12px;
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-        }
-
-        .registered-event-item p:last-child {
-          margin-bottom: 0;
+          box-shadow: 0 2px 8px rgba(168, 85, 247, 0.3);
         }
 
         .main-content {
@@ -465,12 +406,38 @@ export default function StudentDashboard({ user, onLogout }) {
           box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
         }
 
+        .content-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 28px;
+        }
+
         .main-content h2 {
           color: white;
-          margin: 0 0 28px 0;
+          margin: 0;
           font-size: 20px;
           font-weight: 600;
           text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .create-event-btn {
+          background: rgba(168, 85, 247, 0.9);
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 10px;
+          cursor: pointer;
+          font-weight: 600;
+          font-size: 14px;
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .create-event-btn:hover {
+          background: rgba(147, 51, 234, 1);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .events-grid {
@@ -486,7 +453,7 @@ export default function StudentDashboard({ user, onLogout }) {
           transition: all 0.3s ease;
           border: 1px solid rgba(255, 255, 255, 0.25);
           display: grid;
-          grid-template-columns: 200px 1fr;
+          grid-template-columns: 200px 1fr auto;
           box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
@@ -506,7 +473,7 @@ export default function StudentDashboard({ user, onLogout }) {
         }
 
         .event-card-image {
-          background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+          background: linear-gradient(135deg, #a855f7 0%, #d946ef 100%);
           padding: 32px;
           display: flex;
           align-items: center;
@@ -572,54 +539,93 @@ export default function StudentDashboard({ user, onLogout }) {
           text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
         }
 
-        .register-btn {
-          width: 200px;
-          padding: 12px 24px;
+        .event-actions {
+          padding: 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          align-items: center;
+          justify-content: center;
+          border-left: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .participants-badge {
+          background: rgba(168, 85, 247, 0.2);
+          color: #d8b4fe;
+          padding: 8px 16px;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 14px;
+          border: 1px solid rgba(216, 180, 254, 0.3);
+          text-align: center;
+        }
+
+        .status-badge {
+          padding: 6px 12px;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 600;
+        }
+
+        .status-active {
+          background: rgba(34, 197, 94, 0.2);
+          color: #4ade80;
+          border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+
+        .status-completed {
+          background: rgba(156, 163, 175, 0.2);
+          color: #d1d5db;
+          border: 1px solid rgba(209, 213, 219, 0.3);
+        }
+
+        .action-btn {
+          padding: 8px 16px;
           border: none;
-          border-radius: 10px;
+          border-radius: 8px;
           cursor: pointer;
           font-weight: 600;
+          font-size: 13px;
           transition: all 0.3s ease;
-          font-size: 14px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+          width: 120px;
         }
 
-        .register-btn.not-registered {
-          background: rgba(79, 70, 229, 0.9);
-          color: white;
+        .edit-btn {
+          background: rgba(59, 130, 246, 0.2);
+          color: #60a5fa;
+          border: 1px solid rgba(96, 165, 250, 0.3);
         }
 
-        .register-btn.not-registered:hover {
-          background: rgba(67, 56, 202, 1);
+        .edit-btn:hover {
+          background: rgba(59, 130, 246, 0.3);
           transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
-        .register-btn.registered {
-          background: rgba(34, 197, 94, 0.9);
-          color: white;
+        .delete-btn {
+          background: rgba(239, 68, 68, 0.2);
+          color: #f87171;
+          border: 1px solid rgba(248, 113, 113, 0.3);
         }
 
-        .register-btn.registered:hover {
-          background: rgba(22, 163, 74, 1);
+        .delete-btn:hover {
+          background: rgba(239, 68, 68, 0.3);
           transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .empty-state {
           text-align: center;
-          padding: 20px;
+          padding: 48px 20px;
           color: rgba(255, 255, 255, 0.8);
         }
 
         .empty-state-icon {
-          font-size: 32px;
-          margin-bottom: 8px;
+          font-size: 56px;
+          margin-bottom: 16px;
           opacity: 0.7;
         }
 
         .empty-state p {
-          font-size: 13px;
+          font-size: 14px;
           margin: 0;
           text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
         }
@@ -627,7 +633,7 @@ export default function StudentDashboard({ user, onLogout }) {
 
       <div className="dashboard-container">
         <div className="dashboard-header">
-          <h1>Student Dashboard</h1>
+          <h1>Faculty Dashboard</h1>
           <div className="user-info">
             <div className="user-details">
               <div className="user-name">{user.fullName}</div>
@@ -644,10 +650,24 @@ export default function StudentDashboard({ user, onLogout }) {
 
         <div className="dashboard-content">
           <div className="sidebar">
-            {/* Organization ID Box */}
-            <div className="org-id-box">
-              <label className="org-id-label">🏢 Organization ID</label>
-              <div className="org-id-value">{user.organizerId}</div>
+            {/* Stats Box */}
+            <div className="stats-box">
+              <div className="stat-item">
+                <span className="stat-label">📊 Total Events</span>
+                <span className="stat-value">{createdEvents.length}</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-label">🎯 Active Events</span>
+                <span className="stat-value">{createdEvents.filter(e => e.status === 'Active').length}</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-label">👥 Total Participants</span>
+                <span className="stat-value">{createdEvents.reduce((sum, e) => sum + e.totalParticipants, 0)}</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-label">✅ Completed</span>
+                <span className="stat-value">{createdEvents.filter(e => e.status === 'Completed').length}</span>
+              </div>
             </div>
 
             {/* Calendar */}
@@ -675,20 +695,18 @@ export default function StudentDashboard({ user, onLogout }) {
               </div>
 
               <div className="calendar-grid">
-                {/* Empty cells for days before month starts */}
                 {[...Array(firstDay)].map((_, i) => (
                   <div key={`empty-${i}`} className="calendar-day empty"></div>
                 ))}
                 
-                {/* Days of the month */}
                 {[...Array(daysInMonth)].map((_, i) => {
                   const day = i + 1
-                  const isEvent = registeredDates.includes(day)
+                  const isEvent = eventDates.includes(day)
                   return (
                     <div 
                       key={day} 
                       className={`calendar-day ${isEvent ? 'event' : ''}`}
-                      title={isEvent ? 'Event registered' : ''}
+                      title={isEvent ? 'Event scheduled' : ''}
                     >
                       {day}
                     </div>
@@ -696,81 +714,83 @@ export default function StudentDashboard({ user, onLogout }) {
                 })}
               </div>
 
-              {/* Calendar Legend */}
               <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
                 <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.6)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.5) 0%, rgba(16, 185, 129, 0.5) 100%)' }}></div>
+                  <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.6) 0%, rgba(147, 51, 234, 0.6) 100%)' }}></div>
                   Event Day
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Registrations Section */}
-            <div>
-              <h2 style={{ marginBottom: '12px' }}>My Registrations ({registeredEvents.length})</h2>
-              {registeredEvents.length > 0 ? (
-                <div className="registrations-section">
-                  {registeredEvents.map(event => (
-                    <div key={event.id} className="registered-event-item">
-                      <h4>{event.title}</h4>
-                      <p>📅 {event.date}</p>
-                      <p>⏰ {event.time}</p>
-                      <p>📍 {event.location}</p>
+          <div className="main-content">
+            <div className="content-header">
+              <h2>My Events</h2>
+              <button className="create-event-btn" onClick={() => setShowCreateEvent(true)}>
+                + Create Event
+              </button>
+            </div>
+            <div className="events-grid">
+              {createdEvents.length > 0 ? (
+                createdEvents.map(event => (
+                  <div key={event.id} className="event-card">
+                    <div className="event-card-image">
+                      {event.image}
                     </div>
-                  ))}
-                </div>
+                    <div className="event-card-content">
+                      <h3>{event.title}</h3>
+                      <div className="event-category">{event.category}</div>
+                      <div className="event-meta">
+                        <div className="event-meta-item">
+                          <span className="event-meta-icon">📅</span>
+                          <span>{event.date}</span>
+                        </div>
+                        <div className="event-meta-item">
+                          <span className="event-meta-icon">⏰</span>
+                          <span>{event.time} - {event.endTime || 'TBD'}</span>
+                        </div>
+                        <div className="event-meta-item">
+                          <span className="event-meta-icon">📍</span>
+                          <span>{event.location}</span>
+                        </div>
+                        <div className="event-meta-item">
+                          <span className="event-meta-icon">👥</span>
+                          <span>{event.totalParticipants} / {event.capacity || '∞'}</span>
+                        </div>
+                      </div>
+                      <p className="event-description">{event.description}</p>
+                    </div>
+                    <div className="event-actions">
+                      <span className={`status-badge ${event.status === 'Active' ? 'status-active' : 'status-completed'}`}>
+                        {event.status}
+                      </span>
+                      <div className="participants-badge">
+                        {event.totalParticipants} 👥
+                      </div>
+                      <button className="action-btn edit-btn">Edit</button>
+                      <button className="action-btn delete-btn" onClick={() => handleDeleteEvent(event.id)}>Delete</button>
+                    </div>
+                  </div>
+                ))
               ) : (
                 <div className="empty-state">
                   <div className="empty-state-icon">📋</div>
-                  <p>No events registered yet</p>
+                  <p>No events created yet. Click "+ Create Event" to get started!</p>
                 </div>
               )}
             </div>
           </div>
-
-          <div className="main-content">
-            <h2>Upcoming Events</h2>
-            <div className="events-grid">
-              {allEvents.map(event => (
-                <div key={event.id} className="event-card">
-                  <div className="event-card-image">
-                    {event.image}
-                  </div>
-                  <div className="event-card-content">
-                    <h3>{event.title}</h3>
-                    <div className="event-category">{event.category}</div>
-                    <div className="event-meta">
-                      <div className="event-meta-item">
-                        <span className="event-meta-icon">👤</span>
-                        <span>{event.organizer}</span>
-                      </div>
-                      <div className="event-meta-item">
-                        <span className="event-meta-icon">📅</span>
-                        <span>{event.date}</span>
-                      </div>
-                      <div className="event-meta-item">
-                        <span className="event-meta-icon">⏰</span>
-                        <span>{event.time}</span>
-                      </div>
-                      <div className="event-meta-item">
-                        <span className="event-meta-icon">📍</span>
-                        <span>{event.location}</span>
-                      </div>
-                    </div>
-                    <p className="event-description">{event.description}</p>
-                    <button
-                      className={`register-btn ${isRegistered(event.id) ? 'registered' : 'not-registered'}`}
-                      onClick={() => handleRegisterEvent(event)}
-                    >
-                      {isRegistered(event.id) ? '✓ Registered' : 'Register Now'}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
+
+      {/* Create Event Modal */}
+      <CreateEvent
+        isOpen={showCreateEvent}
+        onClose={() => setShowCreateEvent(false)}
+        userRole="faculty"
+        organizationName={user.organizationName || 'Your Organization'}
+        onEventCreated={handleEventCreated}
+      />
     </>
   )
 }
